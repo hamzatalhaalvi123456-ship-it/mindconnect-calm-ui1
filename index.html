@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MindConnect • Calm Mode</title>
+  <style>
+    :root{
+      --red:#e53935;
+      --red2:#ff3b30;
+      --black:#0b0b0b;
+      --text:#0b0b0b;
+      --muted:#6b7280;
+      --bg:#f6f7fb;
+      --card:#ffffff;
+      --stroke:rgba(0,0,0,.08);
+      --shadow: 0 18px 60px rgba(0,0,0,.18);
+      --shadow2: 0 10px 28px rgba(0,0,0,.10);
+      --r:22px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:
+        radial-gradient(900px 500px at 50% 18%, rgba(229,57,53,.14), transparent 60%),
+        radial-gradient(900px 500px at 20% 85%, rgba(229,57,53,.10), transparent 60%),
+        #0a0a0a;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      color:var(--text);
+    }
+
+    /* ===== PHONE FRAME ===== */
+    .device{
+      width: 420px;
+      height: 860px;
+      border-radius: 46px;
+      background: #000;
+      padding: 14px;
+      box-shadow: var(--shadow);
+      position:relative;
+      border: 1px solid rgba(255,255,255,.10);
+    }
+    .screen{
+      height:100%;
+      border-radius: 36px;
+      background: var(--bg);
+      overflow:hidden;
+      position:relative;
+    }
+    .notch{
+      position:absolute;
+      top:10px;
+      left:50%;
+      transform:translateX(-50%);
+      width:170px;
+      height:26px;
+      border-radius:999px;
+      background: rgba(0,0,0,.10);
+      z-index:50;
+      pointer-events:none;
+    }
+
+    /* ===== TOP BAR ===== */
+    .topbar{
+      padding: 18px 16px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .topLeft{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .iconBtn{
+      width:40px;height:40px;
+      border-radius: 14px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.8);
+      box-shadow: var(--shadow2);
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      color:#111;
+      user-select:none;
+    }
+    .iconBtn:active{transform:translateY(1px)}
+    .titleBlock{
+      line-height:1.05;
+    }
+    .titleBlock b{display:block;font-size:14px}
+    .titleBlock span{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+
+    /* ===== HEADER ===== */
+    .header{
+      padding: 0 16px 10px;
+    }
+    .header h1{
+      margin:6px 0 4px;
+      font-size:28px;
+      letter-spacing:-.6px;
+    }
+    .header p{
+      margin:0;
+      color:var(--muted);
+      font-size:12.5px;
+    }
+
+    /* ===== ENV CARDS ===== */
+    .envWrap{
+      padding: 10px 16px 6px;
+    }
+    .envRow{
+      display:flex;
+      gap:12px;
+      overflow:auto;
+      padding-bottom: 8px;
+      scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .envRow::-webkit-scrollbar{height:8px}
+    .envRow::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12); border-radius:999px}
+
+    .envCard{
+      flex: 0 0 140px;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 18px;
+      box-shadow: var(--shadow2);
+      padding: 10px;
+      cursor:pointer;
+      scroll-snap-align:start;
+      transition: transform .10s ease;
+    }
+    .envCard:active{transform:scale(.99)}
+    .envThumb{
+      height: 76px;
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,.06);
+      background: #ddd;
+      position:relative;
+      overflow:hidden;
+    }
+    .envName{
+      margin-top:8px;
+      font-weight:800;
+      font-size:13px;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .envCard.selected{
+      outline: 2px solid rgba(229,57,53,.65);
+      box-shadow: 0 14px 28px rgba(229,57,53,.16), var(--shadow2);
+    }
+
+    /* ===== ORB STAGE ===== */
+    .stageCard{
+      margin: 10px 16px 0;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 22px;
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+    }
+    .stage{
+      position:relative;
+      height: 270px;
+      background: #111;
+    }
+    canvas{
+      width:100%;
+      height:100%;
+      display:block;
+    }
+    .stageBadges{
+      position:absolute;
+      top:12px;
+      left:12px;
+      right:12px;
+      display:flex;
+      justify-content:space-between;
+      pointer-events:none;
+    }
+    .pill{
+      border-radius:999px;
+      padding: 8px 12px;
+      font-size:12px;
+      font-weight:800;
+      background: rgba(255,255,255,.82);
+      border: 1px solid rgba(0,0,0,.08);
+      display:flex;
+      gap:8px;
+      align-items:center;
+      box-shadow: 0 12px 24px rgba(0,0,0,.10);
+    }
+    .liveDot{
+      width:10px;height:10px;border-radius:999px;background:var(--red);
+      box-shadow: 0 0 10px rgba(229,57,53,.65);
+    }
+
+    .guide{
+      padding: 12px 14px 14px;
+    }
+    .guideTitle{
+      font-weight:900;
+      margin:0 0 6px;
+      letter-spacing:-.2px;
+    }
+    .guideBar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.06);
+      border: 1px solid rgba(0,0,0,.06);
+      color:#111;
+      font-size:12px;
+    }
+    .guideBar .muted{color:var(--muted); font-weight:700}
+    .time{
+      font-variant-numeric: tabular-nums;
+      font-weight:900;
+    }
+
+    /* ===== CONTROL ROW ===== */
+    .controlRow{
+      margin: 12px 16px 0;
+      display:grid;
+      grid-template-columns: 1fr 1.2fr 1fr;
+      gap:12px;
+      align-items:center;
+    }
+    .smallBtn{
+      height:52px;
+      border-radius:18px;
+      background: rgba(255,255,255,.82);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow2);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-weight:900;
+      color:#111;
+      user-select:none;
+    }
+    .playBtn{
+      height:64px;
+      border-radius: 22px;
+      background: var(--red);
+      border: 1px solid rgba(0,0,0,.08);
+      box-shadow: 0 18px 30px rgba(229,57,53,.30);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      color:#fff;
+      font-weight:900;
+      user-select:none;
+      font-size:18px;
+    }
+    .smallBtn:active,.playBtn:active{transform:translateY(1px)}
+
+    /* ===== SETTINGS ===== */
+    .settings{
+      margin: 14px 16px 14px;
+      background: var(--card);
+      border: 1px solid var(--stroke);
+      border-radius: 22px;
+      box-shadow: var(--shadow2);
+      padding: 14px;
+    }
+    .settings h3{
+      margin:0 0 10px;
+      font-size:14px;
+      font-weight:900;
+      letter-spacing:-.2px;
+    }
+    label{
+      display:block;
+      font-size:12px;
+      color: var(--muted);
+      margin: 10px 0 6px;
+      font-weight:800;
+    }
+    select, input[type="range"]{
+      width:100%;
+      height:46px;
+      border-radius: 14px;
+      border: 1px solid rgba(0,0,0,.10);
+      background: rgba(0,0,0,.03);
+      padding: 10px 12px;
+      outline:none;
+      font-size:13px;
+    }
+    input[type="range"]{
+      padding:0 10px;
+      height: 40px;
+    }
+    .row2{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+
+    .hint{
+      margin-top:10px;
+      font-size:12px;
+      color: var(--muted);
+      line-height:1.35;
+    }
+
+    /* ===== FULLSCREEN HINT ===== */
+    .fsHint{
+      display:none;
+    }
+    :fullscreen .fsHint{
+      display:block;
+      position:absolute;
+      bottom:18px;
+      left:50%;
+      transform:translateX(-50%);
+      background: rgba(255,255,255,.85);
+      border: 1px solid rgba(0,0,0,.08);
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 12px;
+      font-weight:800;
+      box-shadow: var(--shadow2);
+      z-index:60;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="device" id="device">
+    <div class="screen" id="screen">
+      <div class="notch"></div>
+
+      <!-- Top Bar -->
+      <div class="topbar">
+        <div class="topLeft">
+          <div class="iconBtn" id="btnBack" title="Back">←</div>
+          <div class="titleBlock">
+            <b>AR Sanctuary</b>
+            <span>Select your environment</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <div class="iconBtn" id="btnFullscreen" title="Fullscreen">⛶</div>
+          <div class="iconBtn" id="btnGear" title="Info">⚙</div>
+        </div>
+      </div>
+
+      <!-- Header -->
+      <div class="header">
+        <h1>Select your environment</h1>
+        <p>Swipe to choose a theme</p>
+      </div>
+
+      <!-- Environment Cards -->
+      <div class="envWrap">
+        <div class="envRow" id="envRow"></div>
+      </div>
+
+      <!-- Stage Card -->
+      <div class="stageCard">
+        <div class="stage">
+          <canvas id="gl"></canvas>
+
+          <div class="stageBadges">
+            <div class="pill"><span class="liveDot"></span>LIVE</div>
+            <div class="pill" id="breathPill">Breathe In</div>
+          </div>
+
+          <div class="fsHint">Press ESC to exit fullscreen</div>
+        </div>
+
+        <div class="guide">
+          <div class="guideTitle">10 Minute Guide • Focus & Calm</div>
+          <div class="guideBar">
+            <span class="muted">Follow the orb. Slow breathing.</span>
+            <span class="time" id="timerText">00:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="controlRow">
+        <div class="smallBtn" id="btnReset" title="Reset">↻</div>
+        <div class="playBtn" id="btnStartStop" title="Start / Pause">▶</div>
+        <div class="smallBtn" id="btnMute" title="Mute / Unmute">🔊</div>
+      </div>
+
+      <!-- Settings -->
+      <div class="settings">
+        <h3>Sounds & Settings</h3>
+
+        <label for="soundType">Ambient sound</label>
+        <select id="soundType">
+          <option value="ocean">Ocean (waves)</option>
+          <option value="rain">Rainfall (soothing)</option>
+          <option value="forest">Forest (wind)</option>
+        </select>
+
+        <label for="volume">Volume</label>
+        <input id="volume" type="range" min="0" max="1" step="0.01" value="0.55" />
+
+        <div class="row2">
+          <div>
+            <label for="speed">Breathing speed</label>
+            <input id="speed" type="range" min="0.4" max="2.6" step="0.05" value="1.0" />
+          </div>
+          <div>
+            <label for="orbSize">Orb size</label>
+            <input id="orbSize" type="range" min="0.75" max="1.9" step="0.05" value="1.0" />
+          </div>
+        </div>
+
+        <div class="row2">
+          <div>
+            <label for="intensity">Sound intensity</label>
+            <input id="intensity" type="range" min="0.2" max="1.5" step="0.05" value="1.0" />
+          </div>
+          <div>
+            <label for="soundSpeed">Sound speed</label>
+            <input id="soundSpeed" type="range" min="0.6" max="1.6" step="0.02" value="1.0" />
+          </div>
+        </div>
+
+        <div class="hint" id="statusText">
+          Tap ▶ to start breathing. Tap 🔊 to play/mute audio.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
+
